@@ -1,0 +1,24 @@
+# Cashless Edit + a free, local AI model (Ollama). Everything runs on your own machine.
+#   docker compose up -d
+#   docker compose exec ollama ollama pull qwen2.5:7b-instruct
+# Then open http://localhost:3000 and, in Settings → AI Provider, choose Ollama with URL http://ollama:11434
+services:
+  app:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      APP_SECRET: ${APP_SECRET:-please-change-this-secret}
+      AI_PROVIDER: ollama
+      OLLAMA_URL: http://ollama:11434
+      AI_MODEL: qwen2.5:7b-instruct
+      INSECURE_COOKIES: "1"   # remove when serving over HTTPS
+    volumes: ["cashless-data:/data"]
+    depends_on: [ollama]
+    restart: unless-stopped
+  ollama:
+    image: ollama/ollama:latest
+    volumes: ["ollama-models:/root/.ollama"]
+    restart: unless-stopped
+volumes:
+  cashless-data:
+  ollama-models:

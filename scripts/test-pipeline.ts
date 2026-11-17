@@ -27,6 +27,7 @@ async function main() {
   const { extractBlocks } = await import("../src/lib/parse/extract");
   const { encryptString } = await import("../src/lib/secure");
 
+  if (process.env.AI_TEST === "mock") await (await import("./mock-ai-server")).startMock();
   const uid = "u_test";
   db().prepare("INSERT INTO users (id, email, name, password_hash, created_at) VALUES (?,?,?,?,?)").run(uid, "test@example.com", "Test", "x", now());
   if (process.env.AI_TEST === "mock") {
@@ -118,6 +119,42 @@ async function main() {
     blocked = /DUPLICATE/.test(e.message);
   }
   check("duplicate analysis prevented", blocked);
+
+  // ---------------------------------------------------------- 2b. AI stages (mock provider)
+  if (process.env.AI_TEST === "mock") {
+    const C = await import("../src/lib/creative");
+    check("[ai] fabricated AI fact quote discarded", !(db().prepare("SELECT 1 FROM facts WHERE manuscript_id = ? AND attribute = 'invented attribute'").get(ids.txt)));
+    check("[ai] fabricated AI edit quote discarded", !issues.some((i) => /quick brown fox/.test(i.original_text ?? "")));
+    check("[ai] fabricated continuity contradiction discarded", !issues.some((i) => /Invented contradiction/.test(i.explanation)));
+    check("[ai] no-op AI suggestions skipped", !issues.some((i) => i.source === "ai" && i.suggestion && i.suggestion === i.original_text));
+    check("[ai] grounded AI edits stored", issues.some((i) => i.source === "ai" && i.stage === "line"), `${issues.filter((i) => i.source === "ai").length} AI issues`);
+    check("[ai] chapter intelligence stored", !!(db().prepare("SELECT intel_json FROM chapters WHERE manuscript_id = ? AND intel_json IS NOT NULL").get(ids.txt)));
+    check("[ai] story-level scores from AI", report.scores.plot.basis === "ai" && report.scores.plot.score === 70);
+    for (const k of ["summary", "characters", "conflicts", "plot", "themes", "setting", "developmental", "timeline"]) check(`[ai] analysis “${k}” generated`, !!getAnalysis(ids.txt, k));
+    const cont = await C.helpMeContinue(uid, ms, { request: "" });
+    check("[ai] Help Me Continue → 5 validated scenarios", cont.scenarios.length >= 5 && cont.scenarios.every((s: any) => s.validation));
+    const dev = await C.developScenario(uid, ms, { scenario: cont.scenarios[0].description, format: "scene", words: 300, anchorId: cont.anchorId });
+    check("[ai] Develop This Scenario → draft", !!dev.draftId && dev.content.length > 20);
+    const before = (db().prepare("SELECT COUNT(*) AS n FROM paragraphs WHERE manuscript_id = ?").get(ids.txt) as any).n;
+    const inc = C.incorporateDraft(ms, dev.draftId, cont.anchorId);
+    const after = (db().prepare("SELECT COUNT(*) AS n FROM paragraphs WHERE manuscript_id = ?").get(ids.txt) as any).n;
+    check("[ai] incorporate draft inserts paragraphs (only on explicit action)", inc.inserted === 2 && after === before + 2);
+    const pr = await C.proposeBibleUpdates(uid, ms, dev.draftId);
+    const proposed = db().prepare("SELECT id FROM bible_entries WHERE manuscript_id = ? AND status = 'proposed'").all(ids.txt) as any[];
+    check("[ai] new facts proposed, not yet official", pr.proposed > 0 && proposed.length > 0);
+    C.resolveProposals(ms, proposed.map((p) => p.id), true);
+    check("[ai] confirmed proposals become official", !(db().prepare("SELECT 1 FROM bible_entries WHERE manuscript_id = ? AND status = 'proposed'").get(ids.txt)));
+    const w = await C.whatIf(uid, ms, "What if the secret is revealed now?");
+    check("[ai] What-If is marked hypothetical", w.hypothetical === true);
+    const st = await C.imStuck(uid, ms, "I need a shocking development.");
+    check("[ai] I'm Stuck returns solutions", st.solutions.length > 0);
+    const fp = await C.futurePlanner(uid, ms, { count: 5 });
+    check("[ai] Future Chapter Planner", fp.chapters.length > 0 && fp.from === 11);
+    const rw = await C.rewrite(uid, ms, { text: "It was a very dark night and she was very afraid.", action: "concise" });
+    check("[ai] rewrite returns a revision", /truly/.test(rw.revised));
+    const bid = C.createBranch(ms, "Darker version", "", null, "An alternative scene.");
+    check("[ai] story branch created separately from manuscript", !!bid && after === (db().prepare("SELECT COUNT(*) AS n FROM paragraphs WHERE manuscript_id = ?").get(ids.txt) as any).n);
+  }
 
   // ---------------------------------------------------------- 3. Revision workflow
   const sug = issues.find((i) => i.rule === "repeated_word" && i.status === "open")!;

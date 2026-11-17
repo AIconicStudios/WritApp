@@ -142,7 +142,8 @@ export function languageScores(m: Metrics, s: IssueStat): Pick<Scores, "grammar"
   if (m.avgSentence > 24) sent -= (m.avgSentence - 24) * 2;
   if (m.avgSentence < 8) sent -= (8 - m.avgSentence) * 3;
   sent -= Math.min(20, ((s.lineCount / Math.max(1, m.words)) * 1000) * 1.5);
-  let vocab = 40 + (m.mattr - 0.6) * 220;
+  // MATTR (400-word window) for published fiction typically falls between ~0.48 and ~0.62.
+  let vocab = 55 + (m.mattr - 0.45) * 230;
   vocab -= Math.max(0, m.fillerPer1k - 8) * 1.5;
   vocab -= Math.max(0, m.adverbsPer1k - 12) * 0.8;
   const fe = m.fleschEase;

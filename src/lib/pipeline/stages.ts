@@ -775,3 +775,19 @@ export const RUNNERS: Record<StageId, (c: RunCtx) => Promise<void>> = {
 };
 
 export { aiEnabled };
+
+/** Regenerates one Book Intelligence section on demand (from the Story Intelligence page). */
+export async function regenerateIntelligence(ms: ManuscriptRow, settings: AISettings, key: string) {
+  if (!aiEnabled(settings)) throw new AIError("Book intelligence needs an AI model. Connect one in Settings → AI Provider.");
+  const hasBible = db().prepare("SELECT 1 FROM chapters WHERE manuscript_id = ? AND intel_json IS NOT NULL").get(ms.id);
+  if (!hasBible) throw new AIError("Run a Developmental Edit or Full Editorial Review first — book intelligence is built from the chapter-by-chapter reading.");
+  const fake: JobRow = { id: "adhoc", manuscript_id: ms.id, user_id: ms.user_id, mode: "full", content_hash: "", status: "running", stage: "intelligence", stage_index: 0, progress: 0, message: null, error: null, ai_used: 1, log_json: "[]", created_at: now(), started_at: now(), finished_at: null, heartbeat_at: null };
+  const logs: string[] = [];
+  const ctx: RunCtx = {
+    job: fake, ms, settings, ai: true, chapters: loadRChapters(ms.id),
+    log: (m) => logs.push(m), progress: () => {}, done: (_s, k) => k !== key, result: () => null, record: () => {}, checkCancelled: () => {},
+  };
+  await stageIntelligence(ctx);
+  if (logs.some((l) => /could not be generated/.test(l))) throw new AIError(logs.find((l) => /could not be generated/.test(l))!);
+  return { ok: true };
+}

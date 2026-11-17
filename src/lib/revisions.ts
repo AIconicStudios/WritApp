@@ -55,6 +55,7 @@ export function editParagraph(ms: ManuscriptRow, paragraphId: string, text: stri
   if (!clean) throw new HttpError(400, "A paragraph cannot be empty. (To remove text, delete its words and keep at least one character, or restore an earlier version.)");
   db().transaction(() => {
     setParagraphText(p, clean, source, note);
+    if (p.deleted) db().prepare("UPDATE paragraphs SET deleted = 0, updated_at = ? WHERE id = ?").run(now(), p.id);
     markStale(p.id, clean);
   })();
   refreshCounts(ms.id);
