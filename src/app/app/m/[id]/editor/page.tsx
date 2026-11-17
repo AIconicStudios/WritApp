@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -85,7 +86,7 @@ function Editor() {
   const [active, setActive] = useState<string | null>(sp.get("issue"));
   const [editing, setEditing] = useState<string | null>(null);
   const [filter, setFilter] = useState<{ stage: string; status: string }>({ stage: "all", status: "open" });
-  const [sel, setSel] = useState<{ text: string; paragraphId: string; x: number; y: number } | null>(null);
+  const [sel, setSel] = useState<{ text: string; paragraphId: string; x: number; y: number; below?: boolean } | null>(null);
   const [rw, setRw] = useState<RewriteTarget | null>(null);
   const [focusPara, setFocusPara] = useState<string | null>(sp.get("para"));
   const textRef = useRef<HTMLDivElement>(null);
@@ -131,7 +132,19 @@ function Editor() {
   const activeIssue = ch?.issues.find((i: any) => i.id === active) ?? null;
   const idx = chapters.findIndex((c: any) => c.id === chapterId);
 
-  function onMouseUp() {
+  // Touch devices: text is selected with a long-press, so watch selection changes instead of mouse-up.
+  useEffect(() => {
+    if (!("ontouchstart" in window)) return;
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const h = () => {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => onMouseUp(true), 500);
+    };
+    document.addEventListener("selectionchange", h);
+    return () => document.removeEventListener("selectionchange", h);
+  });
+
+  function onMouseUp(touch = false) {
     const s = window.getSelection();
     if (!s || s.isCollapsed) return setSel(null);
     const text = s.toString().trim();
@@ -145,10 +158,10 @@ function Editor() {
       const ids = ch.paragraphs.map((p: Para) => p.id);
       const a = ids.indexOf(node.dataset.para), b = ids.indexOf(endNode.dataset.para);
       const [from, to] = a < b ? [a, b] : [b, a];
-      setSel({ text: "__range__" + from + ":" + to, paragraphId: node.dataset.para!, x: rect.left + rect.width / 2, y: rect.top });
+      setSel({ text: "__range__" + from + ":" + to, paragraphId: node.dataset.para!, x: rect.left + rect.width / 2, y: touch ? rect.bottom : rect.top, below: touch });
       return;
     }
-    setSel({ text, paragraphId: node.dataset.para!, x: rect.left + rect.width / 2, y: rect.top });
+    setSel({ text, paragraphId: node.dataset.para!, x: rect.left + rect.width / 2, y: touch ? rect.bottom : rect.top, below: touch });
   }
 
   function openRewriteFromSel() {
@@ -166,22 +179,22 @@ function Editor() {
     <div onMouseDown={() => sel && setSel(null)}>
       {node}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <button className="btn-outline btn-sm" disabled={idx <= 0} onClick={() => { setChapterId(chapters[idx - 1].id); setActive(null); setFocusPara(null); router.replace(`/app/m/${id}/editor?chapter=${chapters[idx - 1].id}`); }}>← Previous</button>
-        <select className="input w-auto max-w-[60vw] py-1.5" value={chapterId ?? ""} onChange={(e) => { setChapterId(e.target.value); setActive(null); setFocusPara(null); router.replace(`/app/m/${id}/editor?chapter=${e.target.value}`); }}>
+        <button className="btn-outline btn-sm" disabled={idx <= 0} onClick={() => { setChapterId(chapters[idx - 1].id); setActive(null); setFocusPara(null); router.replace(mhref(id, `/editor?chapter=${chapters[idx - 1].id}`)); }}>← Previous</button>
+        <select className="input w-auto max-w-[60vw] py-1.5" value={chapterId ?? ""} onChange={(e) => { setChapterId(e.target.value); setActive(null); setFocusPara(null); router.replace(mhref(id, `/editor?chapter=${e.target.value}`)); }}>
           {chapters.map((c: any) => <option key={c.id} value={c.id}>{c.title}{c.openIssues ? ` (${c.openIssues})` : ""}</option>)}
         </select>
-        <button className="btn-outline btn-sm" disabled={idx < 0 || idx >= chapters.length - 1} onClick={() => { setChapterId(chapters[idx + 1].id); setActive(null); setFocusPara(null); router.replace(`/app/m/${id}/editor?chapter=${chapters[idx + 1].id}`); }}>Next →</button>
+        <button className="btn-outline btn-sm" disabled={idx < 0 || idx >= chapters.length - 1} onClick={() => { setChapterId(chapters[idx + 1].id); setActive(null); setFocusPara(null); router.replace(mhref(id, `/editor?chapter=${chapters[idx + 1].id}`)); }}>Next →</button>
         {ch && (
           <div className="ml-auto flex flex-wrap gap-2">
             <button className="btn-outline btn-sm" onClick={() => setRw({ kind: "paragraphs", paragraphs: ch.paragraphs.filter((p: Para) => p.style !== "scene_break").map((p: Para) => ({ id: p.id, text: p.text })), chapterId: ch.chapter.id, label: "the whole chapter" })}>Rewrite chapter…</button>
-            <Link className="btn-gold btn-sm" href={`/app/m/${id}/companion?anchor=${ch.paragraphs[ch.paragraphs.length - 1]?.id ?? ""}`}>Help Me Continue</Link>
+            <Link className="btn-gold btn-sm" href={mhref(id, `/companion?anchor=${ch.paragraphs[ch.paragraphs.length - 1]?.id ?? ""}`)}>Help Me Continue</Link>
           </div>
         )}
       </div>
       <ErrorBox error={err} />
       {!ch ? <Loading label="Loading chapter…" /> : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <article className="card relative px-5 py-8 sm:px-12" ref={textRef} onMouseUp={onMouseUp}>
+          <article className="card relative px-5 py-8 sm:px-12" ref={textRef} onMouseUp={() => onMouseUp(false)}>
             <div className="mb-8 text-center">
               {ch.chapter.score != null && <div className="mb-2 text-xs text-navy-400">Chapter rating {ch.chapter.score}/100 · {ch.chapter.word_count.toLocaleString()} words</div>}
               <h2 className="font-serif text-3xl font-semibold text-navy-950">{ch.chapter.title}</h2>
@@ -205,22 +218,22 @@ function Editor() {
                     <div className="absolute -right-2 top-0 hidden gap-1 rounded-md border border-navy-100 bg-white p-0.5 shadow-sm group-hover:flex">
                       <button className="btn-ghost btn-sm px-1.5" title="Edit paragraph" onClick={() => setEditing(editing === p.id ? null : p.id)}>{editing === p.id ? "Done" : "Edit"}</button>
                       <button className="btn-ghost btn-sm px-1.5" title="Rewrite this paragraph" onClick={() => setRw({ kind: "paragraphs", paragraphs: [{ id: p.id, text: p.text }], chapterId: ch.chapter.id, label: "paragraph" })}>Rewrite</button>
-                      <Link className="btn-ghost btn-sm px-1.5" title="Help me continue after this paragraph" href={`/app/m/${id}/companion?anchor=${p.id}`}>Continue</Link>
-                      <Link className="btn-ghost btn-sm px-1.5" title="Version history" href={`/app/m/${id}/history?para=${p.id}`}>History</Link>
+                      <Link className="btn-ghost btn-sm px-1.5" title="Help me continue after this paragraph" href={mhref(id, `/companion?anchor=${p.id}`)}>Continue</Link>
+                      <Link className="btn-ghost btn-sm px-1.5" title="Version history" href={mhref(id, `/history?para=${p.id}`)}>History</Link>
                     </div>
                   </div>
                 );
               })}
             </div>
             {sel && (
-              <div className="fixed z-40 -translate-x-1/2 -translate-y-full rounded-lg bg-navy-950 p-1 shadow-xl" style={{ left: sel.x, top: sel.y - 8 }} onMouseDown={(e) => e.stopPropagation()}>
+              <div className={cx("fixed z-40 flex -translate-x-1/2 rounded-lg bg-navy-950 p-1 shadow-xl", !sel.below && "-translate-y-full")} style={{ left: Math.min(Math.max(sel.x, 150), (typeof window !== "undefined" ? window.innerWidth : 1000) - 150), top: sel.below ? sel.y + 14 : sel.y - 8 }} onMouseDown={(e) => e.stopPropagation()}>
                 <button className="rounded px-2.5 py-1 text-xs text-white hover:bg-navy-800" onClick={openRewriteFromSel}>✦ Rewrite</button>
-                {!sel.text.startsWith("__range__") && <Link className="rounded px-2.5 py-1 text-xs text-white hover:bg-navy-800" href={`/app/m/${id}/companion?anchor=${sel.paragraphId}&selection=${encodeURIComponent(sel.text.slice(0, 500))}`}>Continue from here</Link>}
-                {!sel.text.startsWith("__range__") && <Link className="rounded px-2.5 py-1 text-xs text-white hover:bg-navy-800" href={`/app/m/${id}/companion?tab=whatif&anchor=${sel.paragraphId}`}>What if…</Link>}
+                {!sel.text.startsWith("__range__") && <Link className="rounded px-2.5 py-1 text-xs text-white hover:bg-navy-800" href={mhref(id, `/companion?anchor=${sel.paragraphId}&selection=${encodeURIComponent(sel.text.slice(0, 500))}`)}>Continue from here</Link>}
+                {!sel.text.startsWith("__range__") && <Link className="rounded px-2.5 py-1 text-xs text-white hover:bg-navy-800" href={mhref(id, `/companion?tab=whatif&anchor=${sel.paragraphId}`)}>What if…</Link>}
               </div>
             )}
           </article>
-          <aside className="lg:sticky lg:top-[132px] lg:h-[calc(100vh-150px)]">
+          <aside className={cx("lg:sticky lg:top-[132px] lg:h-[calc(100vh-150px)]", activeIssue && "max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-40 max-lg:h-[62vh] max-lg:rounded-t-2xl max-lg:shadow-2xl")}>
             <div className="card flex h-full flex-col overflow-hidden">
               {activeIssue ? (
                 <div className="flex-1 overflow-y-auto p-4">

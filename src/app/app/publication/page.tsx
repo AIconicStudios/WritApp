@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
@@ -23,7 +24,7 @@ export default function Publication() {
       ) : (
         <div className="space-y-4">
           {audited.map((m) => (
-            <Link key={m.id} href={`/app/m/${m.id}/publication`} className="card flex flex-col gap-4 p-5 transition hover:border-gold-300 sm:flex-row sm:items-center">
+            <Link key={m.id} href={mhref(m.id, `/publication`)} className="card flex flex-col gap-4 p-5 transition hover:border-gold-300 sm:flex-row sm:items-center">
               <ScoreRing score={m.publicationScore} size={64} label="Readiness" />
               <div className="flex-1">
                 <div className="font-serif text-xl font-semibold">{m.title}</div>

@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -89,9 +90,9 @@ export default function Overview() {
               )}
               {job.status === "completed" && (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Link className="btn-primary btn-sm" href={`/app/m/${id}/report`}>Open the editorial report</Link>
-                  <Link className="btn-outline btn-sm" href={`/app/m/${id}/editor`}>Open the revision workspace</Link>
-                  <Link className="btn-outline btn-sm" href={`/app/m/${id}/intelligence`}>Story Intelligence</Link>
+                  <Link className="btn-primary btn-sm" href={mhref(id, `/report`)}>Open the editorial report</Link>
+                  <Link className="btn-outline btn-sm" href={mhref(id, `/editor`)}>Open the revision workspace</Link>
+                  <Link className="btn-outline btn-sm" href={mhref(id, `/intelligence`)}>Story Intelligence</Link>
                 </div>
               )}
               {job.log?.length > 0 && (
@@ -133,7 +134,7 @@ export default function Overview() {
             {data.report && (
               <div className="mt-4 grid grid-cols-4 gap-2 text-center">
                 {(["critical", "major", "moderate", "minor"] as const).map((s) => (
-                  <Link key={s} href={`/app/m/${id}/issues?severity=${s}`} className="rounded-md bg-navy-50 py-2 hover:bg-navy-100">
+                  <Link key={s} href={mhref(id, `/issues?severity=${s}`)} className="rounded-md bg-navy-50 py-2 hover:bg-navy-100">
                     <div className="font-serif text-xl font-semibold">{data.report.counts[s]}</div>
                     <div className="text-[10px] uppercase tracking-wider text-navy-500">{s}</div>
                   </Link>
@@ -146,10 +147,10 @@ export default function Overview() {
           </Section>
         </div>
       </div>
-      <Section title="Chapters" actions={<Link href={`/app/m/${id}/chapters`} className="text-sm text-navy-500 hover:text-navy-900">Chapter-by-chapter →</Link>}>
+      <Section title="Chapters" actions={<Link href={mhref(id, `/chapters`)} className="text-sm text-navy-500 hover:text-navy-900">Chapter-by-chapter →</Link>}>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {data.chapters.map((c: any) => (
-            <Link key={c.id} href={`/app/m/${id}/editor?chapter=${c.id}`} className="flex items-center justify-between gap-2 rounded-md border border-navy-50 px-3 py-2 text-sm hover:border-gold-300">
+            <Link key={c.id} href={mhref(id, `/editor?chapter=${c.id}`)} className="flex items-center justify-between gap-2 rounded-md border border-navy-50 px-3 py-2 text-sm hover:border-gold-300">
               <span className="min-w-0"><span className="block truncate font-medium text-navy-900">{c.title}</span><span className="text-xs text-navy-400">{c.kind === "chapter" ? `${c.wordCount.toLocaleString()} words` : c.matterType?.replace(/_/g, " ") ?? c.kind}{c.openIssues ? ` · ${c.openIssues} findings` : ""}</span></span>
               {c.score != null && <span className="font-serif text-lg font-semibold text-navy-700">{c.score}</span>}
             </Link>

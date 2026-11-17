@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, ago } from "@/lib/client/api";
@@ -21,7 +22,7 @@ export default function Reports() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {analysed.map((m) => (
-            <Link key={m.id} href={`/app/m/${m.id}/report`} className="card flex items-center gap-4 p-5 transition hover:border-gold-300">
+            <Link key={m.id} href={mhref(m.id, `/report`)} className="card flex items-center gap-4 p-5 transition hover:border-gold-300">
               <ScoreRing score={m.overall_score} size={72} />
               <div className="min-w-0">
                 <div className="truncate font-serif text-xl font-semibold">{m.title}</div>

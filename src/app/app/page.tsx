@@ -1,4 +1,5 @@
 "use client";
+import { mhref, MOBILE } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
@@ -27,7 +28,7 @@ export default function Dashboard() {
       </PageHeader>
       {ai && ai.provider === "builtin" && (
         <Notice tone="gold" className="mb-6">
-          <strong>Built-in engine active.</strong> Proofreading, copy-edit and line-edit rules, spelling, continuity of names/ages/descriptions and the publication audit work now, free and offline. To unlock developmental editing, Story Intelligence and the Creative Companion, <Link href="/app/settings" className="font-medium underline">connect a free AI model</Link> (Ollama runs locally with no limits).
+          <strong>Built-in engine active.</strong> Proofreading, copy-edit and line-edit rules, spelling, continuity of names/ages/descriptions and the publication audit work now, free and offline. To unlock developmental editing, Story Intelligence and the Creative Companion, <Link href="/app/settings" className="font-medium underline">connect a free AI model</Link>{MOBILE ? " — a free Google Gemini key takes two minutes to set up on your phone." : " (Ollama runs locally with no limits)."}
         </Notice>
       )}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -41,7 +42,7 @@ export default function Dashboard() {
       {processing.length > 0 && (
         <div className="mb-6 space-y-2">
           {processing.map((m) => (
-            <Link key={m.id} href={`/app/m/${m.id}`} className="card flex items-center justify-between gap-3 border-gold-200 bg-gold-50/40 p-3 text-sm">
+            <Link key={m.id} href={mhref(m.id)} className="card flex items-center justify-between gap-3 border-gold-200 bg-gold-50/40 p-3 text-sm">
               <span><strong>{m.title}</strong> is being analysed…</span>
               <span className="text-gold-700">{Math.round((m.job_progress ?? 0) * 100)}%</span>
             </Link>

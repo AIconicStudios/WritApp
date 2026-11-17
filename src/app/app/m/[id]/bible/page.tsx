@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -114,7 +115,7 @@ function Bible() {
                       <dl className="mt-2 space-y-0.5 text-xs">
                         {Object.entries(e.data).filter(([k, v]) => !HIDDEN.has(k) && v != null && v !== "" && !(Array.isArray(v) && !v.length)).slice(0, 8).map(([k, v]) => <div key={k} className="flex gap-2"><dt className="w-28 flex-none font-semibold text-navy-400">{pretty(k)}</dt><dd className="text-navy-700">{Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v)}</dd></div>)}
                       </dl>
-                      {e.refs?.[0]?.quote && <Link href={e.refs[0].chapterId ? `/app/m/${id}/editor?chapter=${e.refs[0].chapterId}&para=${e.refs[0].paragraphId ?? ""}` : "#"} className="mt-2 block rounded bg-navy-50 px-2 py-1 font-book text-xs italic text-navy-600 hover:bg-navy-100">“{e.refs[0].quote}” <span className="not-italic text-navy-400">— {e.refs[0].label}</span></Link>}
+                      {e.refs?.[0]?.quote && <Link href={e.refs[0].chapterId ? mhref(id, `/editor?chapter=${e.refs[0].chapterId}&para=${e.refs[0].paragraphId ?? ""}`) : "#"} className="mt-2 block rounded bg-navy-50 px-2 py-1 font-book text-xs italic text-navy-600 hover:bg-navy-100">“{e.refs[0].quote}” <span className="not-italic text-navy-400">— {e.refs[0].label}</span></Link>}
                     </div>
                   ))}
                 </div>

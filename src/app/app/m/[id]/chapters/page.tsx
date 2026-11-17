@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/lib/client/api";
@@ -49,18 +50,18 @@ function ChapterDetail({ msId, chapterId }: { msId: string; chapterId: string })
               <ul className="space-y-1.5">
                 {list.slice(0, 12).map((i: any) => (
                   <li key={i.id}>
-                    <Link href={`/app/m/${msId}/editor?chapter=${chapter.id}&issue=${i.id}`} className="flex items-start gap-2 rounded-md p-1.5 text-sm hover:bg-navy-50">
+                    <Link href={mhref(msId, `/editor?chapter=${chapter.id}&issue=${i.id}`)} className="flex items-start gap-2 rounded-md p-1.5 text-sm hover:bg-navy-50">
                       <SeverityBadge s={i.severity} />
                       <span className="min-w-0"><span className="font-medium text-navy-900">{i.category}</span>{i.paragraph_id && <span className="text-xs text-navy-400"> · ¶{(pIdx.get(i.paragraph_id) as number) + 1}</span>}<span className="block truncate text-xs text-navy-500">{i.original_text ? `“${i.original_text}”` : i.explanation}</span></span>
                     </Link>
                   </li>
                 ))}
-                {list.length > 12 && <li><Link className="text-xs text-navy-500 underline" href={`/app/m/${msId}/issues?chapter=${chapter.id}`}>+{list.length - 12} more</Link></li>}
+                {list.length > 12 && <li><Link className="text-xs text-navy-500 underline" href={mhref(msId, `/issues?chapter=${chapter.id}`)}>+{list.length - 12} more</Link></li>}
               </ul>
             )}
           </div>
         ))}
-        <Link href={`/app/m/${msId}/editor?chapter=${chapter.id}`} className="btn-primary btn-sm">Open this chapter in the revision workspace</Link>
+        <Link href={mhref(msId, `/editor?chapter=${chapter.id}`)} className="btn-primary btn-sm">Open this chapter in the revision workspace</Link>
       </div>
     </div>
   );

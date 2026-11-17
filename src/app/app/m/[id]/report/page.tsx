@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, fmtDate } from "@/lib/client/api";
@@ -15,21 +16,21 @@ export default function Report() {
     api(`/api/manuscripts/${id}/analysis/report`).then((x) => setR(x.data));
   }, [id, data?.job?.status]);
   if (r === undefined || !data) return <Loading />;
-  if (!r) return <Empty title="No report yet" action={<Link className="btn-gold" href={`/app/m/${id}`}>Run an analysis</Link>}>The editorial report is generated at the end of every analysis.</Empty>;
+  if (!r) return <Empty title="No report yet" action={<Link className="btn-gold" href={mhref(id)}>Run an analysis</Link>}>The editorial report is generated at the end of every analysis.</Empty>;
   const chapters = data.chapters.filter((c: any) => c.kind === "chapter");
   return (
     <div className="space-y-6">
       <div className="card overflow-hidden">
         <div className="flex flex-col gap-6 bg-navy-950 p-6 text-white md:flex-row md:items-center">
-          <div className="rounded-full bg-white p-2"><ScoreRing score={r.scores.overall?.score} size={110} /></div>
+          <div className="self-start rounded-full bg-white p-2 md:self-auto"><ScoreRing score={r.scores.overall?.score} size={110} /></div>
           <div className="flex-1">
             <div className="eyebrow text-gold-300">Editorial verdict</div>
             <p className="mt-2 font-serif text-xl leading-relaxed text-navy-50">{r.verdict}</p>
             <div className="mt-3 text-xs text-navy-300">{r.aiUsed ? `AI reading by ${r.model}` : "Built-in engine only"} · {r.mode} mode · {fmtDate(r.generatedAt)}</div>
           </div>
           <div className="flex flex-col gap-2">
-            <Link href={`/app/m/${id}/exports`} className="btn-gold btn-sm">Export report (DOCX / PDF)</Link>
-            <Link href={`/app/m/${id}/editor`} className="btn btn-sm border border-navy-600 text-white hover:bg-navy-800">Work through findings</Link>
+            <Link href={mhref(id, `/exports`)} className="btn-gold btn-sm">Export report (DOCX / PDF)</Link>
+            <Link href={mhref(id, `/editor`)} className="btn btn-sm border border-navy-600 text-white hover:bg-navy-800">Work through findings</Link>
           </div>
         </div>
         <p className="px-6 py-3 text-xs text-navy-500">{r.scores.overall?.explanation}</p>
@@ -71,7 +72,7 @@ export default function Report() {
         <Section title="Findings" className="lg:col-span-1">
           <div className="space-y-2 text-sm">
             {Object.entries(r.counts.byStage as Record<string, number>).map(([k, v]) => (
-              <Link key={k} href={`/app/m/${id}/issues?stage=${k}`} className="flex justify-between rounded px-2 py-1 hover:bg-navy-50"><span className="capitalize">{k === "copy" ? "Copy editing" : k === "line" ? "Line editing" : k === "proofread" ? "Proofreading" : k}</span><span className="font-medium">{v}</span></Link>
+              <Link key={k} href={mhref(id, `/issues?stage=${k}`)} className="flex justify-between rounded px-2 py-1 hover:bg-navy-50"><span className="capitalize">{k === "copy" ? "Copy editing" : k === "line" ? "Line editing" : k === "proofread" ? "Proofreading" : k}</span><span className="font-medium">{v}</span></Link>
             ))}
             <div className="border-t border-navy-100 pt-2 text-xs text-navy-500">{r.counts.objective} objective errors · {r.counts.subjective} editorial recommendations</div>
           </div>
@@ -87,7 +88,7 @@ export default function Report() {
       <Section title="Chapter scores">
         <div className="space-y-2">
           {chapters.map((c: any) => (
-            <Link key={c.id} href={`/app/m/${id}/chapters#${c.id}`} className="grid grid-cols-[1fr_120px_40px] items-center gap-3 rounded px-2 py-1 text-sm hover:bg-navy-50">
+            <Link key={c.id} href={mhref(id, `/chapters#${c.id}`)} className="grid grid-cols-[1fr_120px_40px] items-center gap-3 rounded px-2 py-1 text-sm hover:bg-navy-50">
               <span className="truncate">{c.title}</span><ScoreBar score={c.score} /><span className="text-right font-medium">{c.score ?? "—"}</span>
             </Link>
           ))}

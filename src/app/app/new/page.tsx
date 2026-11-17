@@ -1,6 +1,8 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MOBILE } from "@/lib/client/href";
 import Link from "next/link";
 import { api } from "@/lib/client/api";
 import { ErrorBox, Notice, PageHeader, Progress, Spinner, cx } from "@/components/ui";
@@ -45,6 +47,25 @@ export default function NewManuscript() {
     fd.append("file", file);
     Object.entries(meta).forEach(([k, v]) => fd.append(k, v));
     if (force) fd.append("force", "1");
+    if (MOBILE) {
+      // On the phone the file is processed locally — no network upload.
+      setPhase("processing");
+      api("/api/manuscripts", { form: fd })
+        .then(async (r: any) => {
+          if (r.duplicateOf && !force) {
+            setDup(r.duplicateOf);
+            setPhase("idle");
+            return;
+          }
+          if (startNow) await api(`/api/manuscripts/${r.id}/jobs`, { body: { mode } }).catch(() => {});
+          router.push(mhref(r.id));
+        })
+        .catch((e) => {
+          setErr(e.message);
+          setPhase("idle");
+        });
+      return;
+    }
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/manuscripts");
     xhr.upload.onprogress = (e) => e.lengthComputable && setPct(e.loaded / e.total);
@@ -73,7 +94,7 @@ export default function NewManuscript() {
           await api(`/api/manuscripts/${r.id}/jobs`, { body: { mode } });
         } catch {}
       }
-      router.push(`/app/m/${r.id}`);
+      router.push(mhref(r.id));
     };
     xhr.send(fd);
   }
@@ -137,7 +158,7 @@ export default function NewManuscript() {
         {dup && (
           <Notice tone="warn">
             This exact manuscript is already in your library.{" "}
-            <Link className="font-medium underline" href={`/app/m/${dup}`}>Open the existing copy</Link> or{" "}
+            <Link className="font-medium underline" href={mhref(dup)}>Open the existing copy</Link> or{" "}
             <button className="font-medium underline" onClick={() => upload(true)}>upload it again as a separate copy</button>.
           </Notice>
         )}

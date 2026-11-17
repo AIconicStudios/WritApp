@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { ago } from "@/lib/client/api";
 import { cx, ScoreRing } from "./ui";
@@ -20,7 +21,7 @@ export function StatusPill({ status }: { status: string }) {
 
 export function ManuscriptCard({ m }: { m: any }) {
   return (
-    <Link href={`/app/m/${m.id}`} className="card group flex items-center gap-4 p-4 transition hover:border-gold-300">
+    <Link href={mhref(m.id)} className="card group flex items-center gap-4 p-4 transition hover:border-gold-300">
       <div className="flex h-16 w-12 flex-none flex-col justify-between rounded-sm bg-navy-900 p-1.5 shadow-md ring-1 ring-gold-500/40">
         <div className="h-0.5 w-6 bg-gold-400" />
         <div className="line-clamp-3 font-serif text-[7px] leading-tight text-white">{m.title}</div>

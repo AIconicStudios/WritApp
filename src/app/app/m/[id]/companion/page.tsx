@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -56,7 +57,7 @@ function DraftEditor({ msId, draft, chapters, onChange }: { msId: string; draft:
   }
   async function propose() {
     setBusy("bible");
-    try { const r = await api(`/api/manuscripts/${msId}/drafts/${id}`, { body: { action: "propose_bible" } }); toast(`${r.proposed} new facts proposed — confirm them in the Story Bible.`); router.push(`/app/m/${msId}/bible`); }
+    try { const r = await api(`/api/manuscripts/${msId}/drafts/${id}`, { body: { action: "propose_bible" } }); toast(`${r.proposed} new facts proposed — confirm them in the Story Bible.`); router.push(mhref(msId, `/bible`)); }
     catch (e: any) { toast(e.message, "err"); }
     setBusy("");
   }
@@ -64,7 +65,7 @@ function DraftEditor({ msId, draft, chapters, onChange }: { msId: string; draft:
     const name = prompt("Name for this story branch:", draft.title ?? "Alternative direction");
     if (!name) return;
     const r = await api(`/api/manuscripts/${msId}/branches`, { body: { name, description: "Created from a Creative Companion draft", content } });
-    router.push(`/app/m/${msId}/branches?branch=${r.id}`);
+    router.push(mhref(msId, `/branches?branch=${r.id}`));
   }
   const incorporated = draft.status === "incorporated" || after;
   return (
@@ -75,7 +76,7 @@ function DraftEditor({ msId, draft, chapters, onChange }: { msId: string; draft:
       {incorporated ? (
         <Notice tone="success">
           This text is now part of your manuscript{after ? ` (${after.inserted} paragraphs inserted)` : ""}.{" "}
-          {after?.firstParagraphId && <Link className="underline" href={`/app/m/${msId}/editor?para=${after.firstParagraphId}`}>View it in the revision workspace</Link>}
+          {after?.firstParagraphId && <Link className="underline" href={mhref(msId, `/editor?para=${after.firstParagraphId}`)}>View it in the revision workspace</Link>}
           <div className="mt-2 flex flex-wrap gap-2"><button className="btn-primary btn-sm" disabled={!!busy} onClick={propose}>{busy === "bible" && <Spinner className="h-3 w-3" />} Update the Story Bible from this text</button><span className="self-center text-xs">New facts are extracted as proposals for you to confirm.</span></div>
         </Notice>
       ) : (
@@ -244,7 +245,7 @@ function Companion() {
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button className="btn-primary btn-sm" onClick={() => setDevelop({ scenario: `${out.premise}\n${out.effects.plot}` })}>Write it as a draft</button>
-                  <Link className="btn-outline btn-sm" href={`/app/m/${id}/branches?new=${encodeURIComponent(out.premise)}`}>Explore it in a story branch</Link>
+                  <Link className="btn-outline btn-sm" href={mhref(id, `/branches?new=${encodeURIComponent(out.premise)}`)}>Explore it in a story branch</Link>
                 </div>
               </Section>
             </div>

@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
@@ -29,7 +30,7 @@ export default function Publication() {
       <div className="card flex flex-col gap-5 p-5 md:flex-row md:items-center">
         <ScoreRing score={a.score} size={96} label="Readiness" />
         <div className="flex-1"><h2 className="h-display text-2xl">Publication readiness</h2><p className="mt-1 text-sm text-navy-600">{a.disclaimer}</p></div>
-        <div className="flex flex-col gap-2"><button className="btn-outline btn-sm" disabled={busy || running} onClick={runAudit}>{busy && <Spinner className="h-3 w-3" />} Re-run audit</button><Link className="btn-gold btn-sm" href={`/app/m/${id}/exports`}>Prepare files</Link></div>
+        <div className="flex flex-col gap-2"><button className="btn-outline btn-sm" disabled={busy || running} onClick={runAudit}>{busy && <Spinner className="h-3 w-3" />} Re-run audit</button><Link className="btn-gold btn-sm" href={mhref(id, `/exports`)}>Prepare files</Link></div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {a.targets.map((t: any) => (
@@ -48,7 +49,7 @@ export default function Publication() {
                 <li key={c.id} className="flex gap-3 text-sm">
                   <span className={cx("mt-1.5 h-2.5 w-2.5 flex-none rounded-full", ST[c.status])} title={c.status} />
                   <span><span className="font-medium text-navy-900">{c.title}</span>{c.detail && <span className="block text-navy-500">{c.detail}</span>}
-                    {c.refs?.map((r: any, i: number) => <Link key={i} href={`/app/m/${id}/editor?chapter=${r.chapterId}`} className="mr-2 text-xs underline">{r.label}</Link>)}</span>
+                    {c.refs?.map((r: any, i: number) => <Link key={i} href={mhref(id, `/editor?chapter=${r.chapterId}`)} className="mr-2 text-xs underline">{r.label}</Link>)}</span>
                 </li>
               ))}
             </ul>

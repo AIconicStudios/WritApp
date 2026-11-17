@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -63,7 +64,7 @@ function Issues() {
       </div>
       <ErrorBox error={err} />
       {!res ? <Loading /> : res.total === 0 ? (
-        <Empty title="No findings match">{data.report ? "Try changing the filters." : <>Run an analysis from the <Link className="underline" href={`/app/m/${id}`}>Overview</Link>.</>}</Empty>
+        <Empty title="No findings match">{data.report ? "Try changing the filters." : <>Run an analysis from the <Link className="underline" href={mhref(id)}>Overview</Link>.</>}</Empty>
       ) : (
         <>
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm text-navy-500">
@@ -89,7 +90,7 @@ function Issues() {
                   {i.original_text && <div className="mt-1 line-clamp-1 font-book text-sm italic text-navy-700">“{i.original_text}”{i.suggestion ? <span className="not-italic text-emerald-700"> → {i.suggestion}</span> : null}</div>}
                   <div className="line-clamp-1 text-xs text-navy-500">{i.explanation}</div>
                 </button>
-                {i.chapter_id && <Link className="btn-ghost btn-sm self-start" href={`/app/m/${id}/editor?chapter=${i.chapter_id}&issue=${i.id}`}>View in text</Link>}
+                {i.chapter_id && <Link className="btn-ghost btn-sm self-start" href={mhref(id, `/editor?chapter=${i.chapter_id}&issue=${i.id}`)}>View in text</Link>}
               </div>
             ))}
           </div>

@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
@@ -77,7 +78,7 @@ export function IssueDetail({ msId, issue, paragraphText, onDone, chapterTitle }
           <ul className="space-y-1.5">
             {issue.refs.map((r: any, i: number) => (
               <li key={i}>
-                <Link className="block rounded-md bg-navy-50 px-2.5 py-1.5 text-xs hover:bg-navy-100" href={`/app/m/${msId}/editor?chapter=${r.chapterId}${r.paragraphId ? `&para=${r.paragraphId}` : ""}`}>
+                <Link className="block rounded-md bg-navy-50 px-2.5 py-1.5 text-xs hover:bg-navy-100" href={mhref(msId, `/editor?chapter=${r.chapterId}${r.paragraphId ? `&para=${r.paragraphId}` : ""}`)}>
                   <span className="font-medium text-navy-700">{r.label}</span>
                   {r.quote && <span className="block font-book italic text-navy-600">“{r.quote}”</span>}
                 </Link>

@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/client/api";
@@ -79,14 +80,14 @@ export default function Intelligence() {
   const ai = data.ai.enabled;
   const hasAny = d.summary || d.characters || d.plot;
   const Regen = ({ k }: { k: string }) => ai ? <button className="btn-ghost btn-sm" disabled={!!regen} onClick={() => regenerate(k)}>{regen === k ? <Spinner className="h-3 w-3" /> : "↻"} Regenerate</button> : null;
-  const chLink = (i: number) => { const c = chTitle.get(i); return c ? <Link key={i} href={`/app/m/${id}/editor?chapter=${c.id}`} className="chip border-navy-200 text-navy-700 hover:border-gold-400">{c.number != null ? `Ch. ${c.number}` : c.title}</Link> : null; };
+  const chLink = (i: number) => { const c = chTitle.get(i); return c ? <Link key={i} href={mhref(id, `/editor?chapter=${c.id}`)} className="chip border-navy-200 text-navy-700 hover:border-gold-400">{c.number != null ? `Ch. ${c.number}` : c.title}</Link> : null; };
   const selChar = d.bibleCharacters.find((c: any) => c.id === sel);
   const selProfile = selChar && d.characters?.characters?.find((p: any) => p.name.toLowerCase() === selChar.name.toLowerCase() || p.name.split(" ")[0].toLowerCase() === selChar.name.split(" ")[0].toLowerCase());
 
   return (
     <div>
       {node}
-      {!hasAny && (ai ? <Notice tone="gold" className="mb-4">Story Intelligence is built during a <strong>Developmental Edit</strong> or <strong>Full Editorial Review</strong>. <Link className="underline" href={`/app/m/${id}`}>Run one from the Overview</Link>. Built-in character data is shown below.</Notice> : <div className="mb-4"><AINeeded feature="Story Intelligence (summaries, profiles, conflicts, plot and themes)" /></div>)}
+      {!hasAny && (ai ? <Notice tone="gold" className="mb-4">Story Intelligence is built during a <strong>Developmental Edit</strong> or <strong>Full Editorial Review</strong>. <Link className="underline" href={mhref(id)}>Run one from the Overview</Link>. Built-in character data is shown below.</Notice> : <div className="mb-4"><AINeeded feature="Story Intelligence (summaries, profiles, conflicts, plot and themes)" /></div>)}
       <Tabs<Tab> value={tab} onChange={setTab} tabs={[{ id: "overview", label: "Dashboard" }, { id: "characters", label: "Characters", count: d.bibleCharacters.length }, { id: "map", label: "Relationship Map" }, { id: "conflicts", label: "Conflicts", count: d.conflicts?.conflicts?.length }, { id: "plot", label: "Plot" }, { id: "themes", label: "Themes & Symbols" }, { id: "setting", label: "Setting & World" }, { id: "chapters", label: "Chapter Intelligence" }, { id: "timeline", label: "Timeline", count: d.timeline?.events?.length }]} />
 
       {tab === "overview" && (
@@ -245,7 +246,7 @@ export default function Intelligence() {
               <div className="flex items-start gap-4">
                 <ScoreRing score={c.score} size={44} />
                 <div className="min-w-0 flex-1">
-                  <Link href={`/app/m/${id}/editor?chapter=${c.id}`} className="font-serif text-lg font-semibold hover:underline">{c.title}</Link>
+                  <Link href={mhref(id, `/editor?chapter=${c.id}`)} className="font-serif text-lg font-semibold hover:underline">{c.title}</Link>
                   <p className="mt-1 text-sm leading-relaxed text-navy-700">{c.intel?.summary ?? <span className="italic text-navy-400">Not summarised yet.</span>}</p>
                   {c.intel && (
                     <div className="mt-2 grid gap-3 text-xs text-navy-600 md:grid-cols-3">
@@ -273,7 +274,7 @@ export default function Intelligence() {
                   <span className={cx("absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full border-2 border-white", e.importance === "major" ? "bg-gold-500" : "bg-navy-300")} />
                   <div className="flex flex-wrap items-center gap-2">{chLink(e.chapterIdx)}<span className="font-medium text-navy-900">{e.title}</span>{e.when && <span className="text-xs text-gold-700">{e.when}</span>}</div>
                   {e.description && <p className="text-sm text-navy-600">{e.description}</p>}
-                  {e.refs?.[0]?.quote && <Link href={`/app/m/${id}/editor?chapter=${e.refs[0].chapterId}&para=${e.refs[0].paragraphId}`} className="mt-0.5 block font-book text-xs italic text-navy-500 hover:text-navy-800">“{e.refs[0].quote}”</Link>}
+                  {e.refs?.[0]?.quote && <Link href={mhref(id, `/editor?chapter=${e.refs[0].chapterId}&para=${e.refs[0].paragraphId}`)} className="mt-0.5 block font-book text-xs italic text-navy-500 hover:text-navy-800">“{e.refs[0].quote}”</Link>}
                 </li>
               ))}
             </ol>
@@ -305,8 +306,8 @@ function CharacterProfile({ msId, c, p, chLink, relationships, compact }: { msId
           : rels.length ? <ul className="space-y-1 text-sm">{rels.map((r) => <li key={r.id}>{r.name}{r.summary ? ` — ${r.summary}` : ""}</li>)}</ul> : <p className="text-sm italic text-navy-400">None identified.</p>}
       </div>
       <div className="mt-4"><div className="label">Appearances</div><div className="flex flex-wrap gap-1">{(c.data.appearances ?? []).map(chLink)}</div></div>
-      {c.refs?.length > 0 && <div className="mt-4"><div className="label">In the text</div>{c.refs.slice(0, compact ? 2 : 5).map((r: any, i: number) => <Link key={i} href={`/app/m/${msId}/editor?chapter=${r.chapterId}&para=${r.paragraphId}`} className="mb-1 block rounded bg-navy-50 px-2 py-1 font-book text-xs italic text-navy-700 hover:bg-navy-100">“{r.quote}” <span className="not-italic text-navy-400">— {r.label}</span></Link>)}</div>}
-      <Link href={`/app/m/${msId}/bible?section=characters&focus=${encodeURIComponent(c.name)}`} className="btn-outline btn-sm mt-4">Edit in Story Bible</Link>
+      {c.refs?.length > 0 && <div className="mt-4"><div className="label">In the text</div>{c.refs.slice(0, compact ? 2 : 5).map((r: any, i: number) => <Link key={i} href={mhref(msId, `/editor?chapter=${r.chapterId}&para=${r.paragraphId}`)} className="mb-1 block rounded bg-navy-50 px-2 py-1 font-book text-xs italic text-navy-700 hover:bg-navy-100">“{r.quote}” <span className="not-italic text-navy-400">— {r.label}</span></Link>)}</div>}
+      <Link href={mhref(msId, `/bible?section=characters&focus=${encodeURIComponent(c.name)}`)} className="btn-outline btn-sm mt-4">Edit in Story Bible</Link>
     </div>
   );
 }

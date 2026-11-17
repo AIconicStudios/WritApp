@@ -2,8 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
+import { MobileStart } from "@/components/MobileStart";
 
-export const dynamic = "force-dynamic";
 
 const pillars = [
   { t: "Understand your book", d: "Summaries, character profiles, relationship maps, conflicts, plot structure, themes — and a living Story Bible built from every chapter." },
@@ -13,6 +13,7 @@ const pillars = [
 ];
 
 export default async function Home() {
+  if (process.env.NEXT_PUBLIC_MOBILE === "1") return <MobileStart />;
   if (await currentUser()) redirect("/app");
   return (
     <div className="min-h-screen bg-navy-950 text-white">

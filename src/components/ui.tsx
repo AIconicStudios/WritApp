@@ -1,4 +1,5 @@
 "use client";
+import { MOBILE } from "@/lib/client/href";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -193,7 +194,7 @@ export function useToast() {
 export function AINeeded({ feature }: { feature: string }) {
   return (
     <Notice tone="gold">
-      <strong>{feature}</strong> needs an AI model to read your story. Cashless Edit works with free options — a local model through{" "}
+      <strong>{feature}</strong> needs an AI model to read your story. {MOBILE ? <>On your phone the easiest free option is a Google Gemini free-tier key (or Groq / OpenRouter). </> : null}Cashless Edit works with free options — a local model through{" "}
       <a className="underline" href="https://ollama.com" target="_blank" rel="noreferrer">
         Ollama
       </a>{" "}

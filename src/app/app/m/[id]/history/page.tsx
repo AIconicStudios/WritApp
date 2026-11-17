@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -24,13 +25,13 @@ function History() {
   return (
     <div>
       {node}
-      <div className="mb-4 flex items-center justify-between"><p className="text-sm text-navy-500">{para ? "Version history for one paragraph." : "Every change to the working text, newest first. Your original upload is never modified."}</p>{para && <Link href={`/app/m/${id}/history`} className="text-sm underline">Show all changes</Link>}</div>
+      <div className="mb-4 flex items-center justify-between"><p className="text-sm text-navy-500">{para ? "Version history for one paragraph." : "Every change to the working text, newest first. Your original upload is never modified."}</p>{para && <Link href={mhref(id, `/history`)} className="text-sm underline">Show all changes</Link>}</div>
       {!rows.length ? <Empty title="No changes yet">Accepted suggestions, rewrites and your own edits will appear here.</Empty> : (
         <div className="space-y-3">
           {rows.map((v) => (
             <div key={v.id} className="card p-4">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs text-navy-500">
-                <span><span className="chip mr-2 border-navy-200 text-navy-700">{SRC[v.source] ?? v.source}</span>{v.note}{v.chapter_title && <> · <Link className="underline" href={`/app/m/${id}/editor?chapter=${v.chapter_id}&para=${v.paragraph_id}`}>{v.chapter_title}, ¶{v.paragraph_idx + 1}</Link></>}</span>
+                <span><span className="chip mr-2 border-navy-200 text-navy-700">{SRC[v.source] ?? v.source}</span>{v.note}{v.chapter_title && <> · <Link className="underline" href={mhref(id, `/editor?chapter=${v.chapter_id}&para=${v.paragraph_id}`)}>{v.chapter_title}, ¶{v.paragraph_idx + 1}</Link></>}</span>
                 <span>{fmtDate(v.created_at)}</span>
               </div>
               <div className="rounded-md bg-navy-50/50 p-3"><DiffView a={v.previous_text ?? ""} b={v.text} /></div>

@@ -6,6 +6,29 @@ An AI-powered manuscript editing app for authors. It acts as a full editorial te
 
 ---
 
+## Android app (runs entirely on your phone)
+
+Cashless Edit is also an Android app. **Everything runs on the phone:** the database, the editorial engine, document reading (DOCX, PDF, TXT, EPUB…), and every export. There's no server, account or subscription, and it works offline.
+
+**Install it**
+1. Open this repository's **Releases** page on your phone. The newest is "Cashless Edit for Android".
+2. Tap **CashlessEdit.apk** to download it, open it, and allow "install unknown apps" if Android asks.
+3. New builds install over the old one and keep your manuscripts.
+
+**Free AI on the phone:** the built-in engine works without AI. For story analysis and the creative tools:
+- **Google Gemini:** get a free key at aistudio.google.com (Get API key), then paste it in Settings → AI Provider → Google Gemini (free tier). Groq and OpenRouter `:free` keys work too.
+- **Ollama on a home computer:** start Ollama with `OLLAMA_HOST=0.0.0.0` and enter `http://<computer-IP>:11434` while your phone is on the same Wi-Fi.
+
+**How the APK is made:** `.github/workflows/android.yml` builds it on GitHub's free build machines for every push and attaches it to a release.
+- `npm run build:mobile` produces the static on-device app in `out/` and syncs it into `android/` (Capacitor). `MOBILE=1` swaps server modules for their phone versions in `src/mobile/`.
+- On the phone, SQLite runs as WebAssembly and is saved to private app storage. The same API route handlers are called in-process.
+- To build locally with Android Studio: run `npm run build:mobile`, then `npx cap open android`.
+- `android/app/cashless-edit.keystore` is a signing key committed so updates install over each other. Use your own private key if you publish to Google Play.
+
+**Phone notes:**
+- Long analyses run while the app is open. If Android closes the app, the analysis continues automatically the next time you open it.
+- Exports are saved to *Documents/Cashless Edit* and the share sheet opens so you can send them to Drive, email or WhatsApp.
+
 ## Quick start
 
 ```bash

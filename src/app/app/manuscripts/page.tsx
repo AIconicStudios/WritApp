@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api, ago } from "@/lib/client/api";
@@ -40,7 +41,7 @@ export default function Manuscripts() {
               <tbody>
                 {list.map((m) => (
                   <tr key={m.id} className="border-b border-navy-50 last:border-0 hover:bg-navy-50/40">
-                    <td className="px-4 py-3"><Link href={`/app/m/${m.id}`} className="font-serif text-base font-semibold text-navy-950 hover:underline">{m.title}</Link><div className="text-xs text-navy-400">{m.author || "—"} · {m.file_name}</div></td>
+                    <td className="px-4 py-3"><Link href={mhref(m.id)} className="font-serif text-base font-semibold text-navy-950 hover:underline">{m.title}</Link><div className="text-xs text-navy-400">{m.author || "—"} · {m.file_name}</div></td>
                     <td className="px-4 py-3 tabular-nums">{m.word_count.toLocaleString()}</td>
                     <td className="px-4 py-3">{m.chapters}</td>
                     <td className="px-4 py-3"><StatusPill status={m.status} /></td>

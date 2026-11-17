@@ -8,3 +8,10 @@ data/*
 *.tsbuildinfo
 next-env.d.ts
 data-test
+public/sql-wasm.wasm
+public/pdf.worker.min.mjs
+public/dict
+out
+android/app/build
+android/.gradle
+android/build

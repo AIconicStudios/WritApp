@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/client/api";
+import { MOBILE } from "@/lib/client/href";
 import { cx, ErrorBox, Loading, Notice, PageHeader, Section, Spinner, useToast } from "@/components/ui";
 
 export default function Settings() {
@@ -45,6 +46,7 @@ export default function Settings() {
       {node}
       <PageHeader eyebrow="Settings" title="Account Settings" />
       <Section title="AI Provider" className="mb-6">
+        {MOBILE && <Notice tone="gold" className="mb-4"><strong>On your phone, the easiest free option is Google Gemini (free tier):</strong> open aistudio.google.com on your phone, sign in with a Google account, tap “Get API key”, copy it, then choose “Google Gemini (free tier)” below and paste the key. Groq and OpenRouter work the same way. To use <strong>Ollama</strong>, run it on a computer on the same Wi-Fi (start it with <code>OLLAMA_HOST=0.0.0.0</code>) and enter <code>http://&lt;computer-IP&gt;:11434</code> as the URL — “localhost” would mean the phone itself.</Notice>}
         <p className="mb-4 text-sm text-navy-600">Cashless Edit never requires a paid subscription. Choose a free option below. API keys are encrypted at rest and never shown again after saving.</p>
         <div className="mb-5 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {presets.map((p) => (
@@ -96,11 +98,11 @@ export default function Settings() {
           <div className="mt-2 text-sm text-navy-500">{me.email}</div>
           <button className="btn-outline mt-3" onClick={async () => { try { await api("/api/account", { method: "PATCH", body: { name: me.name } }); toast("Profile saved."); router.refresh(); } catch (e: any) { toast(e.message, "err"); } }}>Save</button>
         </Section>
-        <Section title="Password">
+        {!MOBILE && <Section title="Password">
           <label className="label">Current password</label><input className="input" type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} autoComplete="current-password" />
           <label className="label mt-3">New password</label><input className="input" type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} autoComplete="new-password" />
           <button className="btn-outline mt-3" onClick={async () => { try { await api("/api/account", { method: "PATCH", body: { currentPassword: pw.current, newPassword: pw.next } }); router.replace("/login"); } catch (e: any) { toast(e.message, "err"); } }}>Change password</button>
-        </Section>
+        </Section>}
       </div>
       <Section title="Privacy & data" className="mt-6">
         <ul className="mb-4 list-disc space-y-1 pl-5 text-sm text-navy-600">
@@ -108,11 +110,15 @@ export default function Settings() {
           <li>With a local model (Ollama / LM Studio) your text never leaves your machine. With a cloud provider, text is sent to that provider for analysis.</li>
           <li>Your original upload is never modified; all edits are versioned.</li>
         </ul>
+        {MOBILE ? (
+          <div><p className="mb-2 text-sm text-navy-600">Everything is stored privately on this phone. Uninstalling the app also removes it.</p>
+            <button className="btn-danger" onClick={async () => { if (!confirm("Erase ALL manuscripts, reports, Story Bibles and exports from this phone? This cannot be undone.")) return; await api("/api/account", { method: "DELETE", body: {} }); }}>Erase all data on this phone</button></div>
+        ) : <>
         <label className="label">Delete account — type your password to confirm</label>
         <div className="flex flex-wrap gap-2">
           <input className="input max-w-xs" type="password" value={del} onChange={(e) => setDel(e.target.value)} />
           <button className="btn-danger" disabled={!del} onClick={async () => { if (!confirm("Permanently delete your account and ALL manuscripts, reports and exports? This cannot be undone.")) return; try { await api("/api/account", { method: "DELETE", body: { password: del } }); router.replace("/"); } catch (e: any) { toast(e.message, "err"); } }}>Delete account and all data</button>
-        </div>
+        </div></>}
       </Section>
     </div>
   );

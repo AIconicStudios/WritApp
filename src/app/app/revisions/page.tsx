@@ -1,4 +1,5 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
@@ -32,9 +33,9 @@ export default function Revisions() {
             <div key={m.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="font-serif text-lg font-semibold">{m.title}</div>
               <div className="flex flex-wrap gap-2 text-sm">
-                <Link className="btn-outline btn-sm" href={`/app/m/${m.id}/history`}>{counts[m.id]?.versions ?? "…"} versions</Link>
-                <Link className="btn-outline btn-sm" href={`/app/m/${m.id}/companion?tab=drafts`}>{counts[m.id]?.drafts ?? "…"} drafts</Link>
-                <Link className="btn-outline btn-sm" href={`/app/m/${m.id}/branches`}>{counts[m.id]?.branches ?? "…"} story branches</Link>
+                <Link className="btn-outline btn-sm" href={mhref(m.id, `/history`)}>{counts[m.id]?.versions ?? "…"} versions</Link>
+                <Link className="btn-outline btn-sm" href={mhref(m.id, `/companion?tab=drafts`)}>{counts[m.id]?.drafts ?? "…"} drafts</Link>
+                <Link className="btn-outline btn-sm" href={mhref(m.id, `/branches`)}>{counts[m.id]?.branches ?? "…"} story branches</Link>
               </div>
             </div>
           ))}

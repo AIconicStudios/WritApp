@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Logo } from "./Logo";
 import { cx } from "./ui";
 import { api } from "@/lib/client/api";
+import { MOBILE } from "@/lib/client/href";
 
 const NAV = [
   { href: "/app", label: "Dashboard", icon: "M3 12l9-8 9 8M5 10v10h14V10" },
@@ -48,11 +49,11 @@ export function Shell({ user, children }: { user: { name: string; email: string 
         <div className="mx-3 mt-4 border-t border-navy-800 px-3 pt-4">
           <div className="truncate text-sm text-white">{user.name}</div>
           <div className="truncate text-xs text-navy-400">{user.email}</div>
-          <button onClick={logout} className="mt-2 text-xs text-gold-300 hover:text-gold-200">Sign out</button>
+          {!MOBILE && <button onClick={logout} className="mt-2 text-xs text-gold-300 hover:text-gold-200">Sign out</button>}
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between bg-navy-950 px-4 py-3 lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between bg-navy-950 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:hidden">
           <Logo light />
           <button className="text-white" onClick={() => setOpen(!open)} aria-label="Menu">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
@@ -61,7 +62,7 @@ export function Shell({ user, children }: { user: { name: string; email: string 
         {open && (
           <div className="fixed inset-0 z-40 bg-navy-950/95 pt-16 lg:hidden" onClick={() => setOpen(false)}>
             {nav}
-            <button onClick={logout} className="ml-6 mt-6 text-sm text-gold-300">Sign out</button>
+            {!MOBILE && <button onClick={logout} className="ml-6 mt-6 text-sm text-gold-300">Sign out</button>}
           </div>
         )}
         <main className="min-w-0 flex-1">{children}</main>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { api, bytes, fmtDate } from "@/lib/client/api";
+import { api, bytes, downloadExport, fmtDate } from "@/lib/client/api";
 import { useWS } from "@/components/ws/context";
 import { Loading, Notice, Section, Spinner, useToast } from "@/components/ui";
 
@@ -17,7 +17,7 @@ export default function Exports() {
     setBusy(kind + format);
     try {
       const r = await api(`/api/manuscripts/${id}/exports`, { body: { kind, format, trim } });
-      window.location.href = `/api/exports/${r.id}`;
+      await downloadExport(r.id);
       toast(`${r.fileName} generated (${bytes(r.size)}).`);
       load();
     } catch (e: any) { toast(e.message, "err"); }
@@ -45,7 +45,7 @@ export default function Exports() {
       ))}
       <Section title="Previously exported">
         {!d.exports.length ? <p className="text-sm italic text-navy-400">Nothing yet.</p> : (
-          <ul className="divide-y divide-navy-50 text-sm">{d.exports.map((x: any) => <li key={x.id} className="flex items-center justify-between gap-2 py-2"><span><span className="mr-2 rounded bg-navy-900 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gold-300">{x.format}</span>{x.file_name} <span className="text-xs text-navy-400">· {bytes(x.size)} · {fmtDate(x.created_at)}</span></span><a className="btn-ghost btn-sm" href={`/api/exports/${x.id}`}>Download</a></li>)}</ul>
+          <ul className="divide-y divide-navy-50 text-sm">{d.exports.map((x: any) => <li key={x.id} className="flex items-center justify-between gap-2 py-2"><span><span className="mr-2 rounded bg-navy-900 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gold-300">{x.format}</span>{x.file_name} <span className="text-xs text-navy-400">· {bytes(x.size)} · {fmtDate(x.created_at)}</span></span><button className="btn-ghost btn-sm" onClick={() => downloadExport(x.id).catch((e) => toast(e.message, "err"))}>Download</button></li>)}</ul>
         )}
       </Section>
     </div>

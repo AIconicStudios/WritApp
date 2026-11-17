@@ -1,7 +1,8 @@
 "use client";
+import { mhref } from "@/lib/client/href";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { api, bytes, fmtDate } from "@/lib/client/api";
+import { api, bytes, downloadExport, fmtDate } from "@/lib/client/api";
 import { Empty, ErrorBox, Loading, PageHeader } from "@/components/ui";
 
 export default function Exports() {
@@ -24,11 +25,11 @@ export default function Exports() {
               {rows.map((x) => (
                 <tr key={x.id} className="border-b border-navy-50 last:border-0">
                   <td className="px-4 py-3"><span className="mr-2 rounded bg-navy-900 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gold-300">{x.format}</span>{x.file_name}</td>
-                  <td className="px-4 py-3"><Link className="hover:underline" href={`/app/m/${x.manuscript_id}/exports`}>{x.title}</Link></td>
+                  <td className="px-4 py-3"><Link className="hover:underline" href={mhref(x.manuscript_id, `/exports`)}>{x.title}</Link></td>
                   <td className="px-4 py-3 text-navy-500">{bytes(x.size)}</td>
                   <td className="px-4 py-3 text-navy-500">{fmtDate(x.created_at)}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right">
-                    <a className="btn-outline btn-sm" href={`/api/exports/${x.id}`}>Download</a>{" "}
+                    <button className="btn-outline btn-sm" onClick={() => downloadExport(x.id).catch((e) => alert(e.message))}>Download</button>{" "}
                     <button className="btn-ghost btn-sm" onClick={async () => { await api(`/api/exports/${x.id}`, { method: "DELETE" }); load(); }}>Delete</button>
                   </td>
                 </tr>

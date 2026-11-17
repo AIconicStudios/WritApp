@@ -7,7 +7,7 @@ import path from "node:path";
  * The schema is plain SQL and portable to PostgreSQL if you later outgrow SQLite.
  */
 
-export const DATA_DIR = path.resolve(process.env.DATA_DIR || "./data");
+export const DATA_DIR = typeof window !== "undefined" ? "data" : path.resolve(process.env.DATA_DIR || "./data");
 
 const SCHEMA = `
 PRAGMA journal_mode = WAL;
@@ -298,8 +298,11 @@ export function now() {
 }
 
 export function uid(prefix = ""): string {
-  const r = crypto.getRandomValues(new Uint8Array(12));
-  return prefix + Buffer.from(r).toString("base64url");
+  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  const r = crypto.getRandomValues(new Uint8Array(16));
+  let out = prefix;
+  for (const b of r) out += A[b & 63];
+  return out;
 }
 
 export function json<T>(s: string | null | undefined, fallback: T): T {
